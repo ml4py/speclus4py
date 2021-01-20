@@ -5,7 +5,7 @@ with open('README.md', 'r', encoding='utf-8') as fh:
 
 setuptools.setup(
     name='speclus4py',
-    version='0.3.14',
+    version='0.3.14a1',
     author='Marek Pecha',
     author_email='marek.pecha@vsb.cz',
     maintainer='Marek Pecha',

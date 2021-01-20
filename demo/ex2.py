@@ -1,10 +1,11 @@
+import os
 from mpi4py import MPI
 
 from speclus4py import SPECLUS as clustering
 from speclus4py.types import OperatorType
 from speclus4py.tools import hdist_2phase
 
-filename = "../data/vol_imgs/ball.vti"
+filename = os.path.join(os.environ['WORK_DIR'], 'data/vol_imgs/ball.vti')
 
 comm = MPI.COMM_WORLD
 solver = clustering.solver(comm=comm, verbose=True)

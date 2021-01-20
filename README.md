@@ -19,16 +19,19 @@ This repository contains the alpha pre-release of the speclus4py package. Do not
 You can simply install spelus4py using the package management systems [Anaconda](https://www.anaconda.com) or [Conda](https://docs.conda.io/en/latest/).
 
 ```bash
+conda create -n env-speclus4py python=3.7
+conda activate env-speclus4py
 conda config --add channels conda-forge
+conda config --append channels conda-forge/label/gcc7
 conda install -c mpecha speclus4py
 ```
-Operating systems __Linux__ and __macOS__ are currently supported.
 
 ## Getting Started
 
-Take a look at [Usage](#usage) and the examples located in the *demo/* folder to your first meeting with this package, which might accelerate using spelus4py in your research. You can run the example of 2-phase segmentation of *data/ball.vti* (volumetric image) by simply typing to a system console a following command that runs a computation on two CPU cores:
+Take a look at [Usage](#usage) and the examples located in the *demo/* folder to your first meeting with this package, which might accelerate using spelus4py in your research. You can run the example of 2-phase segmentation of *data/vol_imgs/ball.vti* (volumetric image) by simply typing to a system console a following command that runs a computation on two CPU cores:
 
 ```bash
+export WORK_DIR=$PWD
 mpirun -np 2 python demo/ex1.py 
 ``` 
 If this package was succesfully installed, you can see the result as *a green ball* displayed in a visualization window.

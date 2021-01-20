@@ -11,16 +11,23 @@ build:
 requirements:
   build:
     - pip
-    - python
+    - python 3.7
     - setuptools
 
   run:
-    - python
+    - python 3.7
     - pathvalidate
-    - opencv
+    - opencv 
     - scipy
     - numba
-    - mpi4py
-    - petsc4py 3.14
-    - slepc4py 3.14
-    - vtk
+    - mpi4py <=3.0.3
+    - openmpi <=4.0.5,>=4.0
+    - petsc4py >=3.14,<=3.15
+    - slepc4py >=3.14,<=3.15
+    - vtk >=8
+
+about:
+  home: https://github.com/mpecha/speclus4py
+  license: BSD
+  license_file: LICENSE
+  summary: 'Spectral clustering implementation for not only distributed memory systems written in Python'
