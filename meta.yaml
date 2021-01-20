@@ -1,0 +1,26 @@
+package:
+  name: speclus4py
+  version: '0.3.14a1'
+
+source:
+  - path: .
+
+build:
+  number: 0
+
+requirements:
+  build:
+    - pip
+    - python
+    - setuptools
+
+  run:
+    - python
+    - pathvalidate
+    - opencv
+    - scipy
+    - numba
+    - mpi4py
+    - petsc4py 3.14
+    - slepc4py 3.14
+    - vtk
