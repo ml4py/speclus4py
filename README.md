@@ -19,6 +19,7 @@ This repository contains the alpha pre-release of the speclus4py package. Do not
 You can simply install spelus4py using the package management systems [Anaconda](https://www.anaconda.com) or [Conda](https://docs.conda.io/en/latest/).
 
 ```bash
+conda config --add channels conda-forge
 conda install -c mpecha speclus4py
 ```
 Operating systems __Linux__ and __macOS__ are currently supported.
