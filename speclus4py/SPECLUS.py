@@ -40,6 +40,8 @@ class solver(DataObject, OperatorContainer):
         self.__eps_nev = 10
         self.__eps_prob_type = SLEPc.EPS.ProblemType.HEP
 
+        self.__transform_eigenvals = None
+
         self.__rbart_conf_level = 0.05
         self.__rbart_sort_eigvals = False
         self.__rbart_err_correction = True
@@ -68,6 +70,8 @@ class solver(DataObject, OperatorContainer):
             del self.__labels
         if self.__centers:
             del self.__centers
+        if self.__transform_eigenvals:
+            del self.__transform_eigenvals
         del self.__eig_solver
         self.__eig_solver = None
 
@@ -531,10 +535,14 @@ class solver(DataObject, OperatorContainer):
         error = self.__eig_solver.getError()
 
         if not self.__rbartcalled:
-            self.__dim_null = bartlett.determine_nullspace_dimension(eigvals, error_corr=self.rbart_error_correction,
-                                                                     error=error, sort=self.rbart_sort_eigvals,
-                                                                     conf_level=self.rbart_conf_level,
-                                                                     verbose=self.verbose)
+            self.__dim_null, _eigvals = bartlett.estimateNullspaceDimension(eigvals, error_corr=self.rbart_error_correction,
+                                                                            error=error, sort=self.rbart_sort_eigvals,
+                                                                            conf_level=self.rbart_conf_level,
+                                                                            verbose=self.verbose)
+
+            del self.__transform_eigenvals
+            self.__transform_eigenvals = _eigvals
+
             self.__rbartcalled = True
         else:
             PETSc.Sys.Print('Using k=%d connected components (factors) of underlying similarity graph' %
@@ -614,6 +622,20 @@ class solver(DataObject, OperatorContainer):
     def getLabels(self):
         return self.__labels
 
+    def getEigvals(self) -> np.ndarray:
+        if self.__eigsolcalled:
+            eigvals, __ = self.__eig_solver.getSolution()
+        else:
+            eigvals = None
+
+        return eigvals
+
+    def getTransformedEigvals(self) -> np.ndarray:
+        return self.__transform_eigenvals
+
+    def getDimNullSpace(self):
+        return self.__dim_null
+
     def save(self):
         if self.__labels is None:
             return
@@ -624,7 +646,7 @@ class solver(DataObject, OperatorContainer):
                 if not os.path.exists(self.output_dir) and self.output_dir is not '':
                     os.mkdir(self.output_dir)
             except OSError:
-                PETSc.Sys.Print("Creating directory %s failed" % self.output_dir)
+                PETSc.Sys.Print('Creating directory %s failed' % self.output_dir)
                 raise PETSc.Error(67)
         self.comm.Barrier()
 
@@ -688,5 +710,3 @@ class solver(DataObject, OperatorContainer):
     # TODO load result
     # TODO view
     # TODO set prefix for eps, set object names
-    # TODO hamming distance tool
-    # TODO plotting graph tool

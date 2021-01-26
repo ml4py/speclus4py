@@ -5,11 +5,14 @@ import numpy as np
 from scipy import stats
 
 
-def determine_nullspace_dimension(eigvals, error_corr=False, error=None, sort=False, conf_level=0.05, verbose=True) \
-        -> int:
+def estimateNullspaceDimension(eigvals: np.ndarray, error_corr=False, error=None, sort=False, conf_level=0.05,
+                               verbose=True) -> (int, np.ndarray):
     if verbose:
         PETSc.Sys.Print('Determining null-space dimension using reversed Bartlett test (conf_level=%.3f, '
                         'sort_eigvals=%r, error_correction=%r)' % (conf_level, sort, error_corr))
+    if error_corr and error is None:
+        PETSc.Sys.Print('Absolute errors related to eigenpairs are not specified')
+        return -1, None
 
     d = eigvals.shape[0]  # get number of eigenvalues
 
@@ -91,5 +94,4 @@ def determine_nullspace_dimension(eigvals, error_corr=False, error=None, sort=Fa
     elif verbose:
         PETSc.Sys.Print('  Determined k=%d connected components (factors) of underlying similarity graph' % dim_null)
 
-    return dim_null
-
+    return dim_null, _eigvals
