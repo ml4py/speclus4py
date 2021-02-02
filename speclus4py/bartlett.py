@@ -22,7 +22,7 @@ def estimateNullspaceDimension(eigvals: np.ndarray, error_corr=False, error=None
             PETSc.Sys.Print('  Warning: eigenvalues have been sorted!')
         _eigvals = np.sort(_eigvals)
 
-    if error_corr is True:
+    if error_corr:
         exp_min = 1e-1
         for i in range(d):
             if abs(error[i]) > 1.:  # sometimes eigensolver returns extremely-bad solution, thus we need check this
@@ -95,3 +95,6 @@ def estimateNullspaceDimension(eigvals: np.ndarray, error_corr=False, error=None
         PETSc.Sys.Print('  Determined k=%d connected components (factors) of underlying similarity graph' % dim_null)
 
     return dim_null, _eigvals
+
+# TODO move functionality related to transforming eigenvalue profile to separate function
+# TODO adapt test for processing eigenvalues related to matrix of random walk

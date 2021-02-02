@@ -7,8 +7,9 @@ from petsc4py import PETSc
 
 from speclus4py.types import DataType, img_exts, vol_img_exts
 
+
 class Viewer:
-    def __init__(self, filename='', verbose=False):
+    def __init__(self, filename=os.path.join(''), verbose=False):
         self.__filename = filename
         self.__verbose = verbose
 
@@ -16,11 +17,11 @@ class Viewer:
         self.__ocv_equalize_img = False
 
     @property
-    def filename_input(self) -> str:
+    def filename_input(self) -> os.path:
         return self.__filename
 
     @filename_input.setter
-    def filename_input(self, filename: str):
+    def filename_input(self, filename: os.path):
         if not os.path.exists(filename):
             PETSc.Sys.Print('Input file does not exist')
             raise PETSc.Error(62)

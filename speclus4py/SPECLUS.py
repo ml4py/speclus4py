@@ -4,6 +4,7 @@ slepc4py.init(sys.argv)
 import numpy as np
 
 from pathvalidate import is_valid_filepath
+import pathlib
 
 from petsc4py import PETSc
 from slepc4py import SLEPc
@@ -26,8 +27,8 @@ class solver(DataObject, OperatorContainer):
         self.__comm = comm
         self.verbose = verbose
 
-        self.__filename_input = ''
-        self.__output_dir = ''
+        self.__filename_input = None
+        self.__output_dir = PETSc.DEFAULT
         self.__filename_eigvals = PETSc.DEFAULT
         self.__filename_eigvecs = PETSc.DEFAULT
         self.__filename_degs = PETSc.DEFAULT
@@ -88,76 +89,75 @@ class solver(DataObject, OperatorContainer):
 
         # set options for operator
         op_type_string = OptDB.getString('spc_op_type', self.operator_type.value)
-        if op_type_string is not self.operator_type.value:
+        if op_type_string != self.operator_type.value:
             self.operator_type = OperatorType(op_type_string)
         connectivity = OptDB.getInt('spc_op_connectivity', self.connectivity)
-        if connectivity is not self.connectivity:
+        if connectivity != self.connectivity:
             self.connectivity = connectivity
         sigma = OptDB.getReal('spc_op_rbf_sigma', self.sigma)
-        if sigma is not self.sigma:
+        if sigma != self.sigma:
             self.sigma = sigma
 
         # set options for vector quantification using k-means
         vq_kms_nclus = OptDB.getInt('spc_vq_kms_nclus', self.vq_kms_nclus)
-        if vq_kms_nclus is not self.vq_kms_nclus:
+        if vq_kms_nclus != self.vq_kms_nclus:
             self.vq_kms_nclus = vq_kms_nclus
         vq_kms_max_it = OptDB.getInt('spc_vq_kms_max_it', self.vq_kms_max_it)
-        if vq_kms_max_it is not self.vq_kms_max_it:
+        if vq_kms_max_it != self.vq_kms_max_it:
             self.vq_kms_max_it = vq_kms_max_it
         vq_kms_restarts = OptDB.getInt('spc_vq_kms_restarts', self.vq_kms_restarts)
-        if vq_kms_restarts is not self.vq_kms_restarts:
+        if vq_kms_restarts != self.vq_kms_restarts:
             self.vq_kms_restarts = vq_kms_restarts
         vq_kms_tol = OptDB.getReal('spc_vq_kms_tol', self.vq_kms_tol)
-        if vq_kms_tol is not self.vq_kms_tol:
+        if vq_kms_tol != self.vq_kms_tol:
             self.vq_kms_tol = vq_kms_tol
         vq_recover_indicators = OptDB.getBool('spc_vq_recover_indicators', self.vq_recover_indicators)
-        if vq_recover_indicators is not self.vq_recover_indicators:
+        if vq_recover_indicators != self.vq_recover_indicators:
             self.vq_recover_indicators = vq_recover_indicators
         vq_normalize_features = OptDB.getBool('spc_vq_norm_features', self.vq_normalize_features)
-        if vq_normalize_features is not self.vq_normalize_features:
+        if vq_normalize_features != self.vq_normalize_features:
             self.vq_normalize_features = vq_normalize_features
 
         # set options for reversed bartlett test for determining null space dimension of Laplacian matrix
         rbart_conf_level = OptDB.getReal('spc_rbart_conf_level', self.rbart_conf_level)
-        if rbart_conf_level is not self.rbart_conf_level:
+        if rbart_conf_level != self.rbart_conf_level:
             self.rbart_conf_level = rbart_conf_level
         rbart_error_correction = OptDB.getBool('spc_rbart_err_correction', self.rbart_error_correction)
-        if rbart_error_correction is not self.rbart_error_correction:
+        if rbart_error_correction != self.rbart_error_correction:
             self.rbart_error_correction = rbart_error_correction
         rbart_sort_eigvals = OptDB.getBool('spc_rbat_sort_eigvals', self.rbart_sort_eigvals)
-        if rbart_sort_eigvals is not self.rbart_sort_eigvals:
+        if rbart_sort_eigvals != self.rbart_sort_eigvals:
             self.rbart_sort_eigvals = rbart_sort_eigvals
 
         # set input filename
         filename_input = OptDB.getString('spc_filename_input', self.filename_input)
-        if filename_input is not self.filename_input:
+        if filename_input != self.filename_input:
             self.filename_input = filename_input
 
         # set output filenames
         filename_eigvals = OptDB.getString('spc_filename_eigvals', self.filename_eigvals)
-        if filename_eigvals is not self.filename_eigvals:
+        if filename_eigvals != self.filename_eigvals:
             self.filename_eigvals = filename_eigvals
         filename_eigvecs = OptDB.getString('spc_filename_eigvecs', self.filename_eigvecs)
-        if filename_eigvecs is not self.filename_eigvecs:
+        if filename_eigvecs != self.filename_eigvecs:
             self.filename_eigvecs = filename_eigvecs
         filename_degs = OptDB.getString('spc_filename_degs', self.filename_degs)
-        if filename_degs is not self.filename_degs:
+        if filename_degs != self.filename_degs:
             self.filename_degs = filename_degs
         filename_model = OptDB.getString('spc_filename_model', self.filename_model)
-        if filename_model is not self.filename_model:
+        if filename_model != self.filename_model:
             self.filename_model = filename_model
         filename_labels = OptDB.getString('spc_filename_labels', self.filename_labels)
-        if filename_labels is not self.filename_labels:
+        if filename_labels != self.filename_labels:
             self.filename_labels = filename_labels
 
-    # Output filenames getters/setters
     @property
-    def filename_input(self) -> str:
+    def filename_input(self) -> pathlib.Path:
         return self.__filename_input
 
     @filename_input.setter
-    def filename_input(self, name: str):
-        if name is self.filename_input:
+    def filename_input(self, name: pathlib.Path):
+        if name == self.filename_input:
             return
 
         if not os.path.exists(name):
@@ -167,72 +167,73 @@ class solver(DataObject, OperatorContainer):
         self.reset()
         self.__filename_input = name
 
+    # Output filenames getters/setters
     @property
-    def filename_eigvals(self) -> (str, PETSc.DEFAULT):
+    def filename_eigvals(self) -> pathlib.Path:
         return self.__filename_eigvals
 
     @filename_eigvals.setter
-    def filename_eigvals(self, p: (str, PETSc.DEFAULT)):
-        if not (is_valid_filepath(p) or PETSc.DEFAULT):
+    def filename_eigvals(self, p: pathlib.Path):
+        if not (is_valid_filepath(p) or p == PETSc.DEFAULT):
             PETSc.Sys.Print('Not valid filename')
             raise PETSc.Error(62)
         self.__filename_eigvals = p
 
     @property
-    def filename_eigvecs(self) -> (str, PETSc.DEFAULT):
+    def filename_eigvecs(self) -> pathlib.Path:
         return self.__filename_eigvecs
 
     @filename_eigvecs.setter
-    def filename_eigvecs(self, p: (str, PETSc.DEFAULT)):
-        if not (is_valid_filepath(p) or PETSc.DEFAULT):
+    def filename_eigvecs(self, p: pathlib.Path):
+        if not (is_valid_filepath(p) or p == PETSc.DEFAULT):
             PETSc.Sys.Print('Not valid filename')
             raise PETSc.Error(62)
 
         self.__filename_eigvecs = p
 
     @property
-    def filename_degs(self) -> (str, PETSc.DEFAULT):
+    def filename_degs(self) -> pathlib.Path:
         return self.__filename_degs
 
     @filename_degs.setter
-    def filename_degs(self, p: (str, PETSc.DEFAULT)):
-        if not (is_valid_filepath(p) or PETSc.DEFAULT):
+    def filename_degs(self, p: pathlib.Path):
+        if not (is_valid_filepath(p) or p == PETSc.DEFAULT):
             PETSc.Sys.Print('Not valid filename')
             raise PETSc.Error(62)
 
         self.__filename_degs = p
 
     @property
-    def filename_errs(self) -> (str, PETSc.DEFAULT):
+    def filename_errs(self) -> pathlib.Path:
         return self.__filename_errs
 
     @filename_errs.setter
-    def filename_errs(self, p: (str, PETSc.DEFAULT)):
-        if not (is_valid_filepath(p) or PETSc.DEFAULT):
+    def filename_errs(self, p: pathlib.Path):
+        if not (is_valid_filepath(p) or p == PETSc.DEFAULT):
             PETSc.Sys.Print('Not valid filename')
             raise PETSc.Error(62)
 
         self.__filename_errs = p
 
     @property
-    def filename_model(self) -> (str, PETSc.DEFAULT):
+    def filename_model(self) -> pathlib.Path:
         return self.__filename_model
 
     @filename_model.setter
-    def filename_model(self, p: (str, PETSc.DEFAULT)):
-        if not (is_valid_filepath(p) or PETSc.DEFAULT):
+    def filename_model(self, p: pathlib.Path):
+        if not (is_valid_filepath(p) or p == PETSc.DEFAULT):
             PETSc.Sys.Print('Not valid filename')
             raise PETSc.Error(62)
 
         self.__filename_model = p
 
     @property
-    def filename_labels(self) -> (str, PETSc.DEFAULT):
+    def filename_labels(self) -> pathlib.Path:
         return self.__filename_labels
 
     @filename_labels.setter
-    def filename_labels(self, p):
-        if not (is_valid_filepath(p) or PETSc.DEFAULT):
+    def filename_labels(self, p: pathlib.Path):
+        if not (is_valid_filepath(p) or p == PETSc.DEFAULT):
             PETSc.Sys.Print('Not valid filename')
             raise PETSc.Error(62)
 
@@ -240,24 +241,24 @@ class solver(DataObject, OperatorContainer):
 
     # Output directory getter/setter
     @property
-    def output_dir(self):
+    def output_dir(self) -> pathlib.Path:
         return self.__output_dir
 
     @output_dir.setter
-    def output_dir(self, p):
-        if not (is_valid_filepath(p) or PETSc.DEFAULT):
+    def output_dir(self, p: pathlib.Path):
+        if not (is_valid_filepath(p) or p == PETSc.DEFAULT):
             PETSc.Sys.Print('Not valid filename')
             raise PETSc.Error(62)
 
         self.__output_dir = p
 
     @property
-    def eps_problem_type(self):
+    def eps_problem_type(self) -> SLEPc.EPS.ProblemType:
         return self.__eps_prob_type
 
     @eps_problem_type.setter
     def eps_problem_type(self, type: SLEPc.EPS.ProblemType):
-        if type is self.eps_prob_type:
+        if type == self.eps_prob_type:
             return
 
         self.__eps_prob_type = type
@@ -274,7 +275,7 @@ class solver(DataObject, OperatorContainer):
 
     @eps_tol.setter
     def eps_tol(self, tol: float):
-        if tol is self.eps_tol:
+        if tol == self.eps_tol:
             return
 
         if tol <= 0 or tol >= 1:
@@ -295,7 +296,7 @@ class solver(DataObject, OperatorContainer):
 
     @eps_nev.setter
     def eps_nev(self, n: int):
-        if n is self.eps_nev:
+        if n == self.eps_nev:
             return
 
         if n <= 0:
@@ -315,7 +316,7 @@ class solver(DataObject, OperatorContainer):
 
     @rbart_conf_level.setter
     def rbart_conf_level(self, conf_level: float):
-        if conf_level is self.rbart_conf_level:
+        if conf_level == self.rbart_conf_level:
             return
 
         if conf_level < 0. and conf_level > 1.:
@@ -334,7 +335,7 @@ class solver(DataObject, OperatorContainer):
 
     @rbart_error_correction.setter
     def rbart_error_correction(self, flag: bool):
-        if flag is self.rbart_error_correction:
+        if flag == self.rbart_error_correction:
             return
 
         self.__rbart_err_correction = flag
@@ -349,7 +350,7 @@ class solver(DataObject, OperatorContainer):
 
     @rbart_sort_eigvals.setter
     def rbart_sort_eigvals(self, flag: bool):
-        if flag is self.rbart_sort_eigvals:
+        if flag == self.rbart_sort_eigvals:
             return
 
         self.__rbart_sort_eigvals = flag
@@ -364,7 +365,7 @@ class solver(DataObject, OperatorContainer):
 
     @vq_normalize_features.setter
     def vq_normalize_features(self, flag: bool):
-        if flag is self.vq_normalize_features:
+        if flag == self.vq_normalize_features:
             return
 
         self.__vq_normalize_features = flag
@@ -378,7 +379,7 @@ class solver(DataObject, OperatorContainer):
 
     @vq_recover_indicators.setter
     def vq_recover_indicators(self, flag: bool):
-        if flag is self.vq_recover_indicators:
+        if flag == self.vq_recover_indicators:
             return
 
         self.__vq_recover_indicators = flag
@@ -392,7 +393,7 @@ class solver(DataObject, OperatorContainer):
 
     @vq_kms_max_it.setter
     def vq_kms_max_it(self, max_it: int):
-        if max_it is self.vq_kms_max_it:
+        if max_it == self.vq_kms_max_it:
             return
 
         if max_it < 0:
@@ -409,7 +410,7 @@ class solver(DataObject, OperatorContainer):
 
     @vq_kms_tol.setter
     def vq_kms_tol(self, tol: float):
-        if tol is self.vq_kms_tol:
+        if tol == self.vq_kms_tol:
             return
 
         if tol <= 0:
@@ -427,7 +428,7 @@ class solver(DataObject, OperatorContainer):
 
     @vq_kms_restarts.setter
     def vq_kms_restarts(self, restarts: int):
-        if restarts is self.vq_kms_restarts:
+        if restarts == self.vq_kms_restarts:
             return
 
         if restarts <= 0:
@@ -445,7 +446,7 @@ class solver(DataObject, OperatorContainer):
 
     @vq_kms_nclus.setter
     def vq_kms_nclus(self, n: int):
-        if n is self.vq_kms_nclus:
+        if n == self.vq_kms_nclus:
             return
 
         if n < 2:
@@ -458,7 +459,7 @@ class solver(DataObject, OperatorContainer):
         self.__solvecalled = False
 
     def loadData(self):
-        if self.filename_input is '':
+        if self.filename_input == '' or self.filename_input is None:
             PETSc.Sys.Print('Filename is not specified')
             raise PETSc.Error(66)
 
@@ -642,19 +643,22 @@ class solver(DataObject, OperatorContainer):
 
         # create on root process
         if self.comm.Get_rank() == 0:
-            try:
-                if not os.path.exists(self.output_dir) and self.output_dir is not '':
-                    os.mkdir(self.output_dir)
-            except OSError:
-                PETSc.Sys.Print('Creating directory %s failed' % self.output_dir)
-                raise PETSc.Error(67)
+            output_dir = 'outputs' if self.output_dir == PETSc.DEFAULT else self.output_dir
+
+            if not os.path.exists(output_dir):
+                try:
+                    os.mkdir(output_dir)
+                except OSError:
+                    PETSc.Sys.Print('Creating directory %s failed' % self.output_dir)
+                    raise PETSc.Error(67)
+
         self.comm.Barrier()
 
-        if self.filename_eigvecs is PETSc.DEFAULT:
+        if self.filename_eigvecs == PETSc.DEFAULT:
             file = 'eigvecs_%.4f' % self.sigma
         else:
             file = self.filename_eigvecs
-        file = os.path.join(self.output_dir, file)
+        file = os.path.join(output_dir, file)
 
         eigvals, mat_bv = self.__eig_solver.getSolution()
 
@@ -663,45 +667,45 @@ class solver(DataObject, OperatorContainer):
 
         del petsc_viewer
 
-        if self.filename_degs is PETSc.DEFAULT:
+        if self.filename_degs == PETSc.DEFAULT:
             file = 'degs_%.4f' % self.sigma
         else:
             file = self.filename_degs
-        file = os.path.join(self.output_dir, file)
+        file = os.path.join(output_dir, file)
 
         petsc_viewer = PETSc.Viewer().createBinary(name=file, mode=PETSc.Viewer().Mode.WRITE, comm=self.comm)
         self.vec_diag.view(petsc_viewer)
 
         if self.comm.Get_rank() == 0:
-            if self.filename_eigvals is PETSc.DEFAULT:
+            if self.filename_eigvals == PETSc.DEFAULT:
                 file = 'eigvals_%.4f' % self.sigma
             else:
                 file = self.filename_eigvals
-            file = os.path.join(self.output_dir, file)
+            file = os.path.join(output_dir, file)
 
             np.save(file, eigvals)
 
-            if self.filename_errs is PETSc.DEFAULT:
+            if self.filename_errs == PETSc.DEFAULT:
                 file = 'errs_%.4f' % self.sigma
             else:
                 file = self.filename_errs
-            file = os.path.join(self.output_dir, file)
+            file = os.path.join(output_dir, file)
 
             np.save(file, self.__eig_solver.getError())
 
-            if self.filename_model is PETSc.DEFAULT:
+            if self.filename_model == PETSc.DEFAULT:
                 file = 'model_%.4f' % self.sigma
             else:
                 file = self.filename_model
-            file = os.path.join(self.output_dir, file)
+            file = os.path.join(output_dir, file)
 
             np.save(file, self.__centers)
 
-            if self.filename_labels is PETSc.DEFAULT:
+            if self.filename_labels == PETSc.DEFAULT:
                 file = 'labels_%.4f' % self.sigma
             else:
                 file = self.filename_labels
-            file = os.path.join(self.output_dir, file)
+            file = os.path.join(output_dir, file)
 
             np.save(file, self.__labels)
 
@@ -710,3 +714,9 @@ class solver(DataObject, OperatorContainer):
     # TODO load result
     # TODO view
     # TODO set prefix for eps, set object names
+    # TODO broadcast eigenvalues to all processors
+    # TODO move bartlett test to class (reducing number of arguments)
+    # TODO move kms to class (reducing number of arguments related to function)
+    # TODO new prefix for speclus
+    # TODO revise is input none type is necessary
+    # TODO implement

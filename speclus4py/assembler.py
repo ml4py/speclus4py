@@ -363,7 +363,7 @@ class OperatorAssembler(DataObject, OperatorContainer):
         self.vec_diag = self.mat_adj.createVecLeft()
         self.mat_adj.getRowSum(self.vec_diag)
 
-        if self.operator_type is not OperatorType.MARKOV_1 or self.operator_type is not OperatorType.MARKOV_2:
+        if self.operator_type != OperatorType.MARKOV_1 or self.operator_type != OperatorType.MARKOV_2:
             self.mat_op = PETSc.Mat().createAIJ((N, N), comm=self.comm)
             self.mat_op.setPreallocationNNZ(self.connectivity + 1)
             self.mat_op.setFromOptions()
@@ -381,15 +381,15 @@ class OperatorAssembler(DataObject, OperatorContainer):
             self.mat_op.setUp()
             self.mat_op.copy(self.mat_op)
 
-        if self.operator_type is not OperatorType.LAPLACIAN_UNNORMALIZED:
+        if self.operator_type != OperatorType.LAPLACIAN_UNNORMALIZED:
             tmp_vec = self.vec_diag.duplicate()
             self.vec_diag.copy(tmp_vec)
 
-            if self.operator_type is OperatorType.LAPLACIAN_NORMALIZED or self.operator_type is OperatorType.MARKOV_2:
+            if self.operator_type == OperatorType.LAPLACIAN_NORMALIZED or self.operator_type == OperatorType.MARKOV_2:
                 tmp_vec.sqrtabs()
                 tmp_vec.reciprocal()
                 self.mat_op.diagonalScale(tmp_vec, tmp_vec)
-            elif self.operator_type is OperatorType.MARKOV_1:
+            elif self.operator_type == OperatorType.MARKOV_1:
                 tmp_vec.reciprocal()
                 self.mat_op.diagonalScale(tmp_vec)
             else:  # L_rw

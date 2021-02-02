@@ -25,3 +25,5 @@ def screePlotEigenvalues(eigvals: np.ndarray, plt_title=None, mark_zeros=False, 
         plt.plot(eigvals, marker='o', markersize='8', markerfacecolor=clrblue, markeredgecolor=clrblue, color=clrblue,
                  linewidth=2, linestyle=':')
     plt.show()
+
+# TODO functionality for plotting eigenvectors

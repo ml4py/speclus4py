@@ -6,7 +6,7 @@ import numpy as np
 from speclus4py.types import OperatorType
 
 
-class EigenSystemSolver():
+class EigenSystemSolver:
     def __init__(self, verbose=False):
         self.__eps = None
 
@@ -54,7 +54,7 @@ class EigenSystemSolver():
 
     @problem_type.setter
     def problem_type(self, type: SLEPc.EPS.ProblemType):
-        if type is self.problem_type:
+        if type == self.problem_type:
             return
 
         self.reset()
@@ -67,7 +67,7 @@ class EigenSystemSolver():
 
     @tol.setter
     def tol(self, tol: float):
-        if tol is self.tol:
+        if tol == self.tol:
             return
 
         if tol <= 0 or tol >= 1:
@@ -85,7 +85,7 @@ class EigenSystemSolver():
 
     @nev.setter
     def nev(self, n: int):
-        if n is self.nev:
+        if n == self.nev:
             return
 
         if n <= 0:
@@ -142,7 +142,7 @@ class EigenSystemSolver():
         else:
             self.__eps.setOperators(self.__op, None)
 
-        if self.__op_type is not OperatorType.MARKOV_1 or self.__op_type is not OperatorType.MARKOV_2:
+        if self.__op_type != OperatorType.MARKOV_1 or self.__op_type != OperatorType.MARKOV_2:
             self.__eps.setWhichEigenpairs(self.__eps.Which.SMALLEST_REAL)
         else:
             self.__eps.setWhichEigenpairs(self.__eps.Which.LARGEST_REAL)
@@ -158,9 +158,9 @@ class EigenSystemSolver():
             self.setUp()
 
         if self.__verbose:
-            eig_prob_str = 'HEP' if self.__eps_prob_type is SLEPc.EPS.ProblemType.HEP else 'GHEP'
-            eig_which_str = 'largest' if (self.__op_type is OperatorType.MARKOV_1 or
-                                          self.__op_type is OperatorType.MARKOV_2) else 'smallest'
+            eig_prob_str = 'HEP' if self.__eps_prob_type == SLEPc.EPS.ProblemType.HEP else 'GHEP'
+            eig_which_str = 'largest' if (self.__op_type == OperatorType.MARKOV_1 or
+                                          self.__op_type == OperatorType.MARKOV_2) else 'smallest'
             PETSc.Sys.Print('Solving eigensystem (%s, %s real eigenvalues) ' % (eig_prob_str, eig_which_str))
 
         self.__eps.solve()

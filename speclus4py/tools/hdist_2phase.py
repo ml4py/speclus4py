@@ -1,12 +1,13 @@
 from petsc4py import PETSc
 
+import os
 import numpy as np
 import vtk
 
 from speclus4py.tools.viewer import vis_result_2phase
 
 
-def hdist_2phase_vol_img(file_img: str, labels: np.ndarray, verbose=False, visualize_result=False) -> int:
+def hdist_2phase_vol_img(file_img: os.path, labels: np.ndarray, verbose=False, visualize_result=False) -> int:
     vtk_reader = vtk.vtkXMLImageDataReader()
     vtk_reader.SetFileName(file_img)
     vtk_reader.Update()

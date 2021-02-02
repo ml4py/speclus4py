@@ -143,7 +143,7 @@ class OperatorContainer:
 
     @sigma.setter
     def sigma(self, sigma: float):
-        if sigma is self.sigma:
+        if sigma == self.sigma:
             return
 
         if sigma <= 0:
@@ -159,7 +159,7 @@ class OperatorContainer:
 
     @connectivity.setter
     def connectivity(self, con: (int, PETSc.DEFAULT)):
-        if con is self.connectivity:
+        if con == self.connectivity:
             return
 
         if con <= 0 and con != PETSc.DEFAULT:
@@ -176,7 +176,7 @@ class OperatorContainer:
 
     @operator_type.setter
     def operator_type(self, type: OperatorType):
-        if type is self.operator_type:
+        if type == self.operator_type:
             return
 
         self.reset()
@@ -189,7 +189,7 @@ class OperatorContainer:
 
     @mat_type.setter
     def mat_type(self, type):
-        if type is self.mat_type:
+        if type == self.mat_type:
             return
 
         self.reset()
