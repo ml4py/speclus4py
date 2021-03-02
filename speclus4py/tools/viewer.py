@@ -1,4 +1,6 @@
 import vtk
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 def vis_result_2phase(image_data, labels, colors=None, window_size=(1024, 768)):
@@ -73,3 +75,16 @@ def vis_result_2phase(image_data, labels, colors=None, window_size=(1024, 768)):
     render_interactor.Start()
 
     # TODO determine solid labels as maximum of image array values
+
+
+def result_syntehic(data: np.ndarray, labels: np.ndarray):
+    label_min = labels.min()
+    samples1_idx = labels == label_min
+    samples2_idx = np.logical_not(samples1_idx)
+
+    plt.title('Synthetic data result')
+    plt.scatter(data[samples1_idx, 0], data[samples1_idx, 1])
+    plt.scatter(data[samples2_idx, 0], data[samples2_idx, 1])
+    plt.show()
+
+

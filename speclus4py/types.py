@@ -1,4 +1,5 @@
 from enum import Enum, auto
+from typing import Callable, Union
 
 from petsc4py import PETSc
 from mpi4py import MPI
@@ -10,6 +11,7 @@ vol_img_exts = {'.vti', '.vtk'}
 
 class DataType(Enum):
     NONE = auto()
+    GENERAL = auto()
     IMG = auto()
     VOL_IMG = auto()
 
@@ -22,12 +24,27 @@ class OperatorType(Enum):
     MARKOV_2 = 'markov_2'  # by Ng-Weiss
 
 
+class GraphType(Enum):
+    DIRECTED = auto()
+    UNDIRECTED = auto()
+
+
+class EPSProblemType(Enum):
+    HEP = 1
+    GHEP = 2
+    NHEP = 3
+    GNHEP = 4
+
+
 class DataObject:
     def __init__(self, comm=MPI.COMM_WORLD, verbose=False):
         self.__comm = comm
 
         self.__X = None
         self.__data_type = DataType.NONE
+
+        self.__similarity_measure_fn = None
+        self.__similarity_measure_params = PETSc.DEFAULT
 
         self.__verbose = verbose
 
@@ -73,11 +90,36 @@ class DataObject:
         self.__data_type = data_type
 
     def setData(self, X: object, data_type: DataType):
+        del self.data
+
         self.data_type = data_type
         self.data = X
 
     def getData(self) -> (object, DataType):
         return self.data, self.data_type
+
+    def setSimilarityFunc(self, fn, params):
+        self.__similarity_measure_fn = fn
+        self.__similarity_measure_params = params
+
+    def getSimilarityMeasure(self) -> (Callable, Union[float, list]):
+        return self.fn_similarity, self.fn_similarity_params
+
+    @property
+    def fn_similarity(self) -> Callable:
+        return self.__similarity_measure_fn
+
+    @fn_similarity.setter
+    def fn_similarity(self, fn: Callable):
+        self.__similarity_measure_fn = fn
+
+    @property
+    def fn_similarity_params(self) -> Union[float, list]:
+        return self.__similarity_measure_params
+
+    @fn_similarity_params.setter
+    def fn_similarity_params(self, params: Union[float, list]):
+        self.__similarity_measure_params = params
 
 
 class OperatorContainer:
@@ -137,21 +179,21 @@ class OperatorContainer:
     def getOperators(self) -> (PETSc.Mat, PETSc.Mat, PETSc.Vec):
         return self.mat_op, self.mat_adj, self.vec_diag
 
-    @property
-    def sigma(self) -> float:
-        return self.__sigma
-
-    @sigma.setter
-    def sigma(self, sigma: float):
-        if sigma == self.sigma:
-            return
-
-        if sigma <= 0:
-            PETSc.Sys.Print('Standard deviation sigma must be positive')
-            raise PETSc.Error(62)
-
-        self.reset()
-        self.__sigma = sigma
+    # @property
+    # def sigma(self) -> float:
+    #     return self.__sigma
+    #
+    # @sigma.setter
+    # def sigma(self, sigma: float):
+    #     if sigma == self.sigma:
+    #         return
+    #
+    #     if sigma <= 0:
+    #         PETSc.Sys.Print('Standard deviation sigma must be positive')
+    #         raise PETSc.Error(62)
+    #
+    #     self.reset()
+    #     self.__sigma = sigma
 
     @property
     def connectivity(self) -> (int, PETSc.DEFAULT):

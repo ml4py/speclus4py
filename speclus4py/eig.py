@@ -3,7 +3,7 @@ from slepc4py import SLEPc
 
 import numpy as np
 
-from speclus4py.types import OperatorType
+from speclus4py.types import EPSProblemType, OperatorType
 
 
 class EigenSystemSolver:
@@ -12,7 +12,7 @@ class EigenSystemSolver:
 
         self.__eps_tol = 1e-4
         self.__eps_nev = 10
-        self.__eps_prob_type = SLEPc.EPS.ProblemType.HEP
+        self.__eps_prob_type = EPSProblemType.HEP
 
         self.__op = None
         self.__vec_diag = None
@@ -49,11 +49,11 @@ class EigenSystemSolver:
         self.__op_type = op_type
 
     @property
-    def problem_type(self) -> SLEPc.EPS.ProblemType:
+    def problem_type(self) -> EPSProblemType:
         return self.__eps_prob_type
 
     @problem_type.setter
-    def problem_type(self, type: SLEPc.EPS.ProblemType):
+    def problem_type(self, type: EPSProblemType):
         if type == self.problem_type:
             return
 
@@ -119,7 +119,7 @@ class EigenSystemSolver:
             self.__eps = SLEPc.EPS().create(comm=comm)
         self.__eps.setDimensions(self.__eps_nev, PETSc.DECIDE)
         self.__eps.setTolerances(tol=self.__eps_tol)
-        self.__eps.setProblemType(self.__eps_prob_type)
+        self.__eps.setProblemType(self.__eps_prob_type.value)
 
         if self.__eps_prob_type == SLEPc.EPS.ProblemType.GHEP:
             if self.__op_type is not OperatorType.LAPLACIAN_UNNORMALIZED:
@@ -158,7 +158,7 @@ class EigenSystemSolver:
             self.setUp()
 
         if self.__verbose:
-            eig_prob_str = 'HEP' if self.__eps_prob_type == SLEPc.EPS.ProblemType.HEP else 'GHEP'
+            eig_prob_str = self.__eps_prob_type.name
             eig_which_str = 'largest' if (self.__op_type == OperatorType.MARKOV_1 or
                                           self.__op_type == OperatorType.MARKOV_2) else 'smallest'
             PETSc.Sys.Print('Solving eigensystem (%s, %s real eigenvalues) ' % (eig_prob_str, eig_which_str))

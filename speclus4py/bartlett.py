@@ -26,7 +26,7 @@ def estimateNullspaceDimension(eigvals: np.ndarray, error_corr=False, error=None
         exp_min = 1e-1
         for i in range(d):
             if abs(error[i]) > 1.:  # sometimes eigensolver returns extremely-bad solution, thus we need check this
-                return -1
+                return -1, None
 
             exp = math.floor(math.log10(error[i]))
             _eigvals[i] = round(_eigvals[i], -1 * exp)
@@ -86,6 +86,9 @@ def estimateNullspaceDimension(eigvals: np.ndarray, error_corr=False, error=None
 
             dim_null = k - 1
             break
+        elif k == d - 1:
+            dim_null = k
+
         if verbose:
              PETSc.Sys.Print('  k=%d, tstat=%.5f, df=%d, p-value = %3f (H0 accepted)' % (k, tstat, df, p))
 

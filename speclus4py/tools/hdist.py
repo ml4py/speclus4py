@@ -36,7 +36,22 @@ def hdist_2phase_vol_img(file_img: os.path, labels: np.ndarray, verbose=False, v
     if verbose:
         PETSc.Sys.Print('Hamming distance: %d' % hdist)
 
+    # TODO remove visualization result from this function
     if visualize_result:
         vis_result_2phase(image_data, labels)
+
+    return hdist
+
+
+def hdist_syntetic(labels: np.ndarray, labels_predicted: np.ndarray, verbose=False) -> int:
+    N = labels.size
+
+    hdist = 0
+    for i in range(0, N):
+        if labels[i] != labels_predicted[i]:
+            hdist += 1
+
+    if verbose:
+        PETSc.Sys.Print('Hamming distance: %d' % hdist)
 
     return hdist

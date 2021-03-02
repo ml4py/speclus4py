@@ -14,4 +14,4 @@ def kms(data, k=2, max_iter=100, restarts=5, tol=0.1, verbose=False):
     if verbose:
         PETSc.Sys.Print('(k-means) best compactness: %.5e' % rss)
 
-    return labels, centers
+    return labels.T[0], centers

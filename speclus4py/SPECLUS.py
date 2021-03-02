@@ -2,15 +2,14 @@ import slepc4py, sys, os
 slepc4py.init(sys.argv)
 
 import numpy as np
-
-from pathvalidate import is_valid_filepath
 import pathlib
 
+from pathvalidate import is_valid_filepath
+from typing import Callable, Union
 from petsc4py import PETSc
-from slepc4py import SLEPc
 from mpi4py import MPI
 
-from speclus4py.types import DataObject, OperatorContainer, OperatorType
+from speclus4py.types import DataObject, EPSProblemType, GraphType, OperatorContainer, OperatorType
 from speclus4py.viewer import Viewer
 from speclus4py.assembler import OperatorAssembler
 from speclus4py.eig import EigenSystemSolver
@@ -36,10 +35,12 @@ class solver(DataObject, OperatorContainer):
         self.__filename_model = PETSc.DEFAULT
         self.__filename_labels = PETSc.DEFAULT
 
+        self.__graph_type = GraphType.UNDIRECTED
+
         self.__eig_solver = None
         self.__eps_tol = 1e-4
         self.__eps_nev = 10
-        self.__eps_prob_type = SLEPc.EPS.ProblemType.HEP
+        self.__eps_prob_type = EPSProblemType.HEP
 
         self.__transform_eigenvals = None
 
@@ -66,7 +67,7 @@ class solver(DataObject, OperatorContainer):
 
     def reset(self):
         OperatorContainer.reset(self)
-        del self.data
+
         if self.__labels:
             del self.__labels
         if self.__centers:
@@ -94,9 +95,10 @@ class solver(DataObject, OperatorContainer):
         connectivity = OptDB.getInt('spc_op_connectivity', self.connectivity)
         if connectivity != self.connectivity:
             self.connectivity = connectivity
-        sigma = OptDB.getReal('spc_op_rbf_sigma', self.sigma)
-        if sigma != self.sigma:
-            self.sigma = sigma
+        # TODO sigma -> params list
+        # sigma = OptDB.getReal('spc_op_rbf_sigma', self.sigma)
+        # if sigma != self.sigma:
+        #     self.sigma = sigma
 
         # set options for vector quantification using k-means
         vq_kms_nclus = OptDB.getInt('spc_vq_kms_nclus', self.vq_kms_nclus)
@@ -130,8 +132,9 @@ class solver(DataObject, OperatorContainer):
             self.rbart_sort_eigvals = rbart_sort_eigvals
 
         # set input filename
-        filename_input = OptDB.getString('spc_filename_input', self.filename_input)
-        if filename_input != self.filename_input:
+        filename_input = self.filename_input if self.filename_input is not None else ''
+        filename_input = OptDB.getString('spc_filename_input', filename_input)
+        if filename_input != self.filename_input and filename_input != '':
             self.filename_input = filename_input
 
         # set output filenames
@@ -253,12 +256,12 @@ class solver(DataObject, OperatorContainer):
         self.__output_dir = p
 
     @property
-    def eps_problem_type(self) -> SLEPc.EPS.ProblemType:
+    def eps_problem_type(self) -> EPSProblemType:
         return self.__eps_prob_type
 
     @eps_problem_type.setter
-    def eps_problem_type(self, type: SLEPc.EPS.ProblemType):
-        if type == self.eps_prob_type:
+    def eps_problem_type(self, type: EPSProblemType):
+        if type == self.__eps_prob_type:
             return
 
         self.__eps_prob_type = type
@@ -458,6 +461,14 @@ class solver(DataObject, OperatorContainer):
         self.__vqcalled = False
         self.__solvecalled = False
 
+    @property
+    def graph_type(self) -> GraphType:
+        return self.__graph_type
+
+    @graph_type.setter
+    def graph_type(self, t: GraphType):
+        self.__graph_type = t
+
     def loadData(self):
         if self.filename_input == '' or self.filename_input is None:
             PETSc.Sys.Print('Filename is not specified')
@@ -470,19 +481,60 @@ class solver(DataObject, OperatorContainer):
         [data, data_type] = v.load()
         self.setData(data, data_type)
 
+        # TODO reset
+
         del v
+
+    def setSimilarityFunc(self, fn: Callable, params: Union[float, list]):
+        self.fn_similarity = fn
+        self.fn_similarity_params = params
+
+    @property
+    def fn_similarity(self):
+        return DataObject.fn_similarity
+
+    @fn_similarity.setter
+    def fn_similarity(self, fn: Callable):
+        DataObject.fn_similarity = fn
+
+        self.__eigsolcalled = False
+        self.__rbartcalled = False
+        self.__vqcalled = False
+        self.__setupcalled = False
+        self.__solvecalled = False
+
+        del self.mat_op, self.mat_adj, self.vec_diag
+        self.mat_op = self.mat_adj = self.vec_diag = None
+
+    @property
+    def fn_similarity_params(self):
+        return DataObject.fn_similarity_params
+
+    @fn_similarity_params.setter
+    def fn_similarity_params(self, params: Union[float, list]):
+        DataObject.fn_similarity_params = params
+
+        self.__eigsolcalled = False
+        self.__rbartcalled = False
+        self.__vqcalled = False
+        self.__setupcalled = False
+        self.__solvecalled = False
+
+        del self.mat_op, self.mat_adj, self.vec_diag
+        self.mat_op = self.mat_adj = self.vec_diag = None
 
     def assemblyOperator(self):
         if self.data is None:
             self.loadData()
 
-        [data, data_type] = self.getData()
+        data, data_type = self.getData()
+        sim_func, sim_params = self.getSimilarityMeasure()
 
         op_assembler = OperatorAssembler(self.comm, self.verbose)
-
         op_assembler.setData(data, data_type)
+        op_assembler.setSimilarityFunc(sim_func, sim_params)
         op_assembler.connectivity = self.connectivity
-        op_assembler.sigma = self.sigma
+        op_assembler.graph_type = self.graph_type
         op_assembler.operator_type = self.operator_type
         op_assembler.mat_type = self.mat_type
 
@@ -718,5 +770,4 @@ class solver(DataObject, OperatorContainer):
     # TODO move bartlett test to class (reducing number of arguments)
     # TODO move kms to class (reducing number of arguments related to function)
     # TODO new prefix for speclus
-    # TODO revise is input none type is necessary
     # TODO implement
