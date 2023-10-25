@@ -6,8 +6,6 @@ __Spectral clustering implementation for distributed machine learning__
 https://anaconda.org/ml4py/speclus4py/badges/version.svg)](https://anaconda.org/ml4py/speclus4py)
 [![Platforms](
 https://anaconda.org/ml4py/speclus4py/badges/platforms.svg)](https://anaconda.org/ml4py/speclus4py)
-[![Install](
-https://anaconda.org/ml4py/speclus4py/badges/installer/conda.svg)](https://anaconda.org/ml4py/speclus4py)
 
 This package is related to unsupervised learning using [the spectral clustering technique](https://en.wikipedia.org/wiki/Spectral_clustering). It is written in the Python programming language on top of the [SLEPc](https://slepc.upv.es) and [PETSc/TAO](https://www.mcs.anl.gov/petsc/) frameworks, and it includes many others additional packages like [OpenCV](https://opencv.org), [scipy](https://www.scipy.org), [numpy](https://numpy.org), [numba](http://numba.pydata.org). It takes advantages from distributed memory management, which basically inherits from PETSc. Thus, computations can run on parallel computing architectures such as [beowulfs](https://en.wikipedia.org/wiki/Beowulf_cluster)/small clusters and [supercomputers](https://en.wikipedia.org/wiki/Supercomputer) natively. It does not mean that one cannot use it on laptops and desktop computers. On these, users can effectively utilize computational cores using the message passing interface commonly known as [MPI](https://en.wikipedia.org/wiki/Message_Passing_Interface) as well. Used approach based on MPI provides distributed data parallelism to the conventional machine learning technique and enables it for processing [large-scale data](https://en.wikipedia.org/wiki/Big_data). 
 
